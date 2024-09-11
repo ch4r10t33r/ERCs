@@ -1,13 +1,13 @@
 ---
-title: LP paymaster.
+title: Chain Abstracted Paymaster.
 description: Standardisation of paymaster webservices to ensure they are compatible with Chain Abstraction protocols.
-author: Parthasarathy Ramanujam (@ch4r10t33r), Utkir Sobirov (@sulpiride), Vignesh Aravamudhan (@balajivignesh22)
-discussions-to: https://ethereum-magicians.org/t/erc-lp-paymaster
+author: Parthasarathy Ramanujam (@ch4r10t33r), <insert co-author names here>
+discussions-to: <insert actual URL here>
 status: Draft
 type: Standards Track
 category: ERC
 created: 2024-08-23
-requires: 4337,7715
+requires: 4337
 
 ---
 
@@ -18,33 +18,25 @@ A proposal to establish a standardized API for paymaster web services, ensuring 
 
 ## Motivation
 
-In a multi-chain environment, bridging assets is often slow and results in a poor user experience. Several chain abstraction proposals, such as OneBalance and MagicSpend++, suggest that paymasters can improve this experience by fronting liquidity for users (in addition to gas sponsorship) after validating credible commitments provided by them. To enhance interoperability and streamline the process, it is essential to standardize the API calls to these paymaster web services, ensuring compatibility across various chain abstraction proposals. This proposal aims to achieve that standardization.
+In a multi-chain environment, bridging assets is often slow and results in a poor user experience. Several chain abstraction proposals, such as OneBalance and MagicSpend++, suggest that paymasters can improve this experience by fronting liquidity for users (in addition to gas sponsorship) after validating credible commitments provided to them. To enhance interoperability and streamline the process, it is essential to standardize the API calls to these paymaster web services, ensuring compatibility across various chain abstraction proposals. This proposal aims to achieve that standardization.
 
 ## Specification
 
-<!--
-  The Specification section should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Ethereum platforms (besu, erigon, ethereumjs, go-ethereum, nethermind, or others).
+We introduce two new RPC endpoints `pm_getLiquidityAssets` and `pm_getSponsorWithLiquidityStub` to be implemented by paymaster web services. 
 
-  It is recommended to follow RFC 2119 and RFC 8170. Do not remove the key word definitions if RFC 2119 and RFC 8170 are followed.
+### `pm_getLiquidityAssets`
 
-  TODO: Remove this comment before submitting
--->
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119 and RFC 8174.
-
-### `pm_getSupportedLiquidityTokens`
-
-We introduce a new RPC endpont `pm_getSupportedLiquidityTokens` 
+This method MUST return a list of liquidity tokens the paymaster supports along with their `tokenAddress`, `symbol` and `availableLiquidity`.
 
 #### Request Specification
 
 ```tsx
-type GetSupportedLLiquidityTokensRequestParams = {
+type GetSupportedLiquidityAssetsRequestParams = {
   chainId: number;
 };
 ```
 
-###### `pm_getSupportedLiquidityTokens` Example Parameters
+###### `pm_getLiquidityAssets` Example Parameters
 
 ```json
   {
@@ -52,9 +44,9 @@ type GetSupportedLLiquidityTokensRequestParams = {
   },
 ```
 
-###### `pm_getSupportedLiquidityTokens` Example Return Value
+###### `pm_getLiquidityAssets` Example Return Value
 
-Paymaster service MUST return a list of tokens which it supports along with the available balance
+Paymaster service MUST return a list of tokens which it supports along with the available liquidity
 
 ```json
   {
@@ -64,45 +56,127 @@ Paymaster service MUST return a list of tokens which it supports along with the 
       {
         "address" : "0x..",
         "symbol" : "USDC",
-        "availableBalance": "0x..",
+        "availableLiquidity": "0x..",
       },
       {
         "address" : "0x..",
         "symbol" : "WETH",
-        "availableBalance": "0x..",
+        "availableLiquidity": "0x..",
       },
     ]
   }
 ```
 
+### `pm_getSponsorWithLiquidityStub`
+
+We introduce a new RPC endpont `pm_getSponsorWithLiquidityStub` 
+
+#### Request Specification
+
+```tsx
+// [liqudity, userOp, entryPoint, chainId, context]
+type GetSponsorWithLiquidityStubParams = [
+  // Information of the asset for which liquidity is expected
+  {
+    chainId: number;
+    tokenAddress: `0x${string}`;
+    // proof to resource lock/escrow.
+    resourceLock: `0x${string}`;
+  },
+  // Below is specific to Entrypoint v0.6 but this API can be used with other entrypoint versions too
+  {
+    sender: `0x${string}`;
+    nonce: `0x${string}`;
+    initCode: `0x${string}`;
+    callData: `0x${string}`;
+    callGasLimit: `0x${string}`;
+    verificationGasLimit: `0x${string}`;
+    preVerificationGas: `0x${string}`;
+    maxFeePerGas: `0x${string}`;
+    maxPriorityFeePerGas: `0x${string}`;
+  },
+  `0x${string}`, // EntryPoint
+  `0x${string}`, // Chain ID
+  Record<string, any> // Context
+];
+
+type GetSponsorWithLiquidityResult = {
+  paymaster?: string // Paymaster address (entrypoint v0.7)
+  paymasterData?: string; // Paymaster data (entrypoint v0.7)
+  paymasterAndData?: string; // Paymaster and data (entrypoint v0.6)
+};
+```
+
+###### `pm_getSponsorWithLiquidityStub` Example Parameters
+
+```json
+[
+  {
+    "chainId": "0x10",
+    "tokenAddress": "0x...",
+    "resourceLock": "0x...",
+  },
+  {
+    "sender": "0x...",
+    "nonce": "0x...",
+    "initCode": "0x...",
+    "callData": "0x...",
+    "callGasLimit": "0x...",
+    "verificationGasLimit": "0x...",
+    "preVerificationGas": "0x...",
+    "maxFeePerGas": "0x...",
+    "maxPriorityFeePerGas": "0x...",
+  },
+  "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+  "0x2105",
+  {
+    // This is illustrative, these are usually defined by the service provider.
+    "validFrom": "0x...",
+    "validUntil": "0x...",
+    "policyId" : "0bfb4251-3960-4c37-87c9-d65bfcaeca13",
+  }
+]
+```
+
+###### `pm_getSponsorWithLiquidityStub` Example Return Value
+
+Paymaster services MUST detect which entrypoint version the account is using and verify the validity of `resourceLock` and return the correct fields. 
+
+For example, if using entrypoint v0.6:
+
+```json
+{
+  "paymasterAndData": "0x...",
+  "verificationGasLimit": "0x...",
+  "preVerificationGas": "0x...",
+  "callGasLimit": "0x...",  
+}
+```
+
+If using entrypoint v0.7:
+
+```json
+{
+  "paymaster": "0x...",
+  "paymasterData": "0x...",
+  "preVerificationGas": "0x...",
+  "verificationGasLimit": "0x...",
+  "callGasLimit": "0x...",
+  "paymasterVerificationGasLimit": "0x...",
+  "paymasterPostOpGasLimit": "0x1"
+}
+```
 
 
 ## Rationale
 
-<!--
-  The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages.
+The current use of paymaster services to sponsor gas for user operations via the `pm_sponsorUserOperation` method is significantly limited. This ERC proposes extending paymaster services to also front liquidity alongside gas sponsorship. Paymasters will be required to validate the user's specified resource lock before providing the necessary paymaster data, including relevant gas fields. Since fronting liquidity may introduce overhead, the estimated gas values might be inaccurate. Therefore, `pm_getSponsorWithLiquidityStub` MAY return paymaster-specific gas limits that account for any additional gas overheads related to liquidity fronting and post-operation costs.
 
-  The current placeholder is acceptable for a draft.
-
-  TODO: Remove this comment before submitting
--->
-
-TBD
+// TODO - Insert sequence diagram HERE
 
 ## Backwards Compatibility
 
-<!--
-
-  This section is optional.
-
-  All EIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The EIP must explain how the author proposes to deal with these incompatibilities. EIP submissions without a sufficient backwards compatibility treatise may be rejected outright.
-
-  The current placeholder is acceptable for a draft.
-
-  TODO: Remove this comment before submitting
--->
-
-No backward compatibility issues found.
+Paymasters which do not support `pm_getLiquidityAssets` or `pm_getSponsorWithLiquidityStub` SHOULD return an error message if the RPC method is called.
 
 ## Test Cases
 
