@@ -32,7 +32,7 @@ This method MUST return a list of liquidity tokens the paymaster supports along 
 
 ```tsx
 type GetSupportedLiquidityAssetsRequestParams = {
-  chainId: number;
+  chainId: string;
 };
 ```
 
@@ -56,11 +56,13 @@ Paymaster service MUST return a list of tokens which it supports along with the 
       {
         "address" : "0x..",
         "symbol" : "USDC",
+        "decimals": "6",
         "availableLiquidity": "0x..",
       },
       {
         "address" : "0x..",
         "symbol" : "WETH",
+        "decimals": "18",
         "availableLiquidity": "0x..",
       },
     ]
