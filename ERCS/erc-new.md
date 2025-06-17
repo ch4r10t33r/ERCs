@@ -87,7 +87,7 @@ The keystore format MUST conform to the following schema:
     },
     "keytype": {
       "type": "string",
-      "enum": ["secp256k1", "bls12-381", "dilithium3", "dilithium5", "kyber768"]
+      "enum": ["secp256k1", "bls12-381"]
     },
     "description": { "type": "string" },
     "quantum_secure": { "type": "boolean", "const": true },
@@ -151,9 +151,6 @@ AES-GCM and XChaCha20-Poly1305 provide both encryption and authentication in one
 
 Recommended for its strong memory-hard properties and resistance to both GPU and quantum attacks compared to PBKDF2.
 
-### Post-Quantum Key Types
-
-Though Ethereum currently uses ECDSA and BLS, this schema anticipates support for post-quantum algorithms like Dilithium and Kyber for future upgrades.
 
 ## Backward Compatibility
 
