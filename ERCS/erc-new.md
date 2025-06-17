@@ -2,7 +2,7 @@
 eip: <to be assigned>
 title: Quantum-Secure Ethereum Keystore Format
 description: Upgrade to the EIP-2335 keystore standard with quantum-resistant encryption, KDFs, and optional post-quantum key types
-author: Parthasarathy Ramanujam <@ch4r10t33r>, Jihoon Song<>, Mark <>
+author: Parthasarathy Ramanujam <@ch4r10t33r>, Jihoon Song
 discussions-to: https://ethereum-magicians.org/
 status: Draft
 type: Standards Track
@@ -31,7 +31,7 @@ This document introduces version `5` of the keystore format.
 - Encryption must use `aes-256-gcm` or `xchacha20-poly1305` (AEAD)
 - MAC is integrated via authenticated encryption tag
 - Key size increased to 256 bits
-- Support for post-quantum key types: `dilithium3`, `dilithium5`, `kyber768`
+- Support for post-quantum key types: `dilithium3`, `dilithium5`, `kyber768`, `falcon512`, `wots`
 - Adds `quantum_secure: true` flag
 
 ### JSON Schema
