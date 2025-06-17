@@ -1,7 +1,7 @@
 ---
 eip: <to be assigned>
 title: Quantum-Secure Ethereum Keystore Format
-description: Upgrade to the EIP-2335 keystore standard with quantum-resistant encryption, KDFs, and optional post-quantum key types
+description: Upgrade to the EIP-2335 keystore standard with quantum-resistant encryption, KDFs.
 author: Parthasarathy Ramanujam <@ch4r10t33r>, Jihoon Song
 discussions-to: https://ethereum-magicians.org/
 status: Draft
@@ -13,7 +13,7 @@ requires: 2335
 
 ## Abstract
 
-This ERC proposes an upgrade to the Ethereum keystore format defined in EIP-2335 to enhance resistance against quantum adversaries. It introduces stronger symmetric encryption, quantum-resistant key derivation functions, and optional support for post-quantum asymmetric key types.
+This ERC proposes an upgrade to the Ethereum keystore format defined in EIP-2335 to enhance resistance against quantum adversaries. It introduces stronger symmetric encryption, quantum-resistant key derivation functions.
 
 ## Motivation
 
@@ -31,7 +31,6 @@ This document introduces version `5` of the keystore format.
 - Encryption must use `aes-256-gcm` or `xchacha20-poly1305` (AEAD)
 - MAC is integrated via authenticated encryption tag
 - Key size increased to 256 bits
-- Support for post-quantum key types: `dilithium3`, `dilithium5`, `kyber768`, `falcon512`, `wots`
 - Adds `quantum_secure: true` flag
 
 ### JSON Schema
@@ -160,7 +159,6 @@ This format is **not backward-compatible** with EIP-2335. Clients must check the
 
 - AES-256-GCM and XChaCha20-Poly1305 are widely audited and considered secure against quantum and classical attacks.
 - Argon2id protects against brute-force cracking of passphrases even under quantum-assisted brute-force attempts.
-- Post-quantum key types must be implemented carefully, as many are still undergoing standardization.
 
 ## Copyright
 
