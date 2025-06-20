@@ -21,17 +21,28 @@ As quantum computing progresses, certain cryptographic schemes, especially asymm
 
 ## Specification
 
+This proposal introduces the following updates to improve security and provide forward compatibility with post-quantum cryptographic standards:
+
+1. **Key Derivation Function (KDF)**
+   - Replaces PBKDF2 with more secure, memory-hard alternatives:
+     - `argon2id` (preferred)
+     - `scrypt` (as a fallback with tuned parameters)
+
+2. **Authenticated Encryption**
+   - Encryption must use an AEAD (Authenticated Encryption with Associated Data) scheme:
+     - `aes-256-gcm`
+     - or `xchacha20-poly1305`
+   - MAC (message authentication code) is integrated into the encryption tag, eliminating the need for a separate field
+
+3. **Key Size**
+   - Encryption key length is increased to 256 bits (from the previous 128-bit standard)
+
+4. **Post-Quantum Declaration**
+   - Introduces a `quantum_secure: true` flag to explicitly indicate use of post-quantum
+
 ### Version
 
 This document introduces version `5` of the keystore format.
-
-### Key Changes from EIP-2335
-
-- KDF must be `argon2id` or highly tuned `scrypt`
-- Encryption must use `aes-256-gcm` or `xchacha20-poly1305` (AEAD)
-- MAC is integrated via authenticated encryption tag
-- Key size increased to 256 bits
-- Adds `quantum_secure: true` flag
 
 ### JSON Schema
 
@@ -47,7 +58,7 @@ The keystore format MUST conform to the following schema:
     "crypto": {
       "type": "object",
       "properties": {
-        "kdf": { "type": "string", "enum": ["argon2id", "scrypt"] },
+        "kdf": { "type": "string", "enum": ["argon2id"] },
         "kdfparams": {
           "type": "object",
           "oneOf": [
