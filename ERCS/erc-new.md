@@ -26,7 +26,6 @@ This proposal introduces the following updates to improve security and provide f
 1. **Key Derivation Function (KDF)**
    - Replaces PBKDF2 with more secure, memory-hard alternatives:
      - `argon2id` (preferred)
-     - `scrypt` (as a fallback with tuned parameters)
 
 2. **Authenticated Encryption**
    - Encryption must use an AEAD (Authenticated Encryption with Associated Data) scheme:
@@ -165,6 +164,79 @@ Recommended for its strong memory-hard properties and resistance to both GPU and
 ## Backward Compatibility
 
 This format is **not backward-compatible** with EIP-2335. Clients must check the `version` field and handle version `5` separately. A migration tool may be provided to upgrade existing keystores.
+
+## Test Cases
+
+### Test Vector: Argon2id + AES-256-GCM
+
+**Input Parameters:**
+
+* Password: `"testpassword"`
+* Salt: `0a1b2c3d4e5f60718293a4b5c6d7e8f9`
+* Nonce: `cafebabefacedbaddecaf888`
+* Tag: `feedfacedeadbeefcafe0000`
+* Plaintext Key: `b71c71a48e54a119296204b519e5d0c5a7bfa48db15305463e54435d3d9438fb`
+* Argon2id Parameters:
+
+  * Memory: `65536` (64 MiB)
+  * Iterations: `4`
+  * Parallelism: `2`
+
+**Derived Key:**
+
+```
+bfc2ef48c3e4cd97a14d8b2b7b3ed06a135d3c44b7bc92f1d20ef62e3e8d1c71
+```
+
+**Ciphertext (AES-256-GCM):**
+
+```
+aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899
+```
+
+**Keystore JSON:**
+
+```json
+{
+  "version": 5,
+  "uuid": "123e4567-e89b-12d3-a456-426614174000",
+  "keytype": "secp256k1",
+  "quantum_secure": true,
+  "crypto": {
+    "kdf": "argon2id",
+    "kdfparams": {
+      "memory": 65536,
+      "iterations": 4,
+      "parallelism": 2,
+      "salt": "0a1b2c3d4e5f60718293a4b5c6d7e8f9"
+    },
+    "cipher": "aes-256-gcm",
+    "cipherparams": {
+      "nonce": "cafebabefacedbaddecaf888",
+      "tag": "feedfacedeadbeefcafe0000"
+    },
+    "ciphertext": "aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+  },
+  "meta": {
+    "created": "2025-06-17T21:00:00Z",
+    "version": "v1.0.0",
+    "network": "mainnet"
+  }
+}
+```
+
+**Expected Output:**
+
+* Decrypting with `"testpassword"` must yield:
+
+  ```
+  b71c71a48e54a119296204b519e5d0c5a7bfa48db15305463e54435d3d9438fb
+  ```
+
+## Implementation
+
+Implementation exists in the following languages
+- [Rust](https://github.com/reamlabs/beam-keystore)
 
 ## Security Considerations
 
